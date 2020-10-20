@@ -1,0 +1,8 @@
+tls:
+  certificates:
+    - certFile: C:\etc\traefik\certs\admin.sc10.local.crt
+      keyFile: C:\etc\traefik\certs\admin.sc10.local.key
+    - certFile: C:\etc\traefik\certs\login.sc10.local.crt
+      keyFile: C:\etc\traefik\certs\login.sc10.local.key
+    - certFile: C:\etc\traefik\certs\trainer.sc10.local.crt
+      keyFile: C:\etc\traefik\certs\trainer.sc10.local.key

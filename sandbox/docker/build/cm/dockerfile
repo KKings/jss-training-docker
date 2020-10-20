@@ -1,0 +1,25 @@
+# escape=`
+
+ARG BASE_IMAGE
+ARG TOOLING_IMAGE
+ARG JSS_TOOLING_IMAGE
+
+FROM ${TOOLING_IMAGE} as tooling
+FROM ${JSS_TOOLING_IMAGE} as node
+FROM ${BASE_IMAGE}
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Copy development tools and entrypoint
+COPY --from=tooling \tools\ \tools\
+
+COPY --from=node C:\nodejs\ C:\nodejs\
+RUN $env:PATH = 'C:\nodejs;{0}' -f $env:PATH ; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine)
+RUN npm config set registry https://registry.npmjs.org/
+
+# find transform files and do transformation
+RUN (Get-ChildItem -Path 'C:\\inetpub\\wwwroot\\app_data\jssxdt\\*.xdt' -Recurse ) | ForEach-Object { & 'C:\\tools\\scripts\\Invoke-XdtTransform.ps1' -Path 'C:\\inetpub\\wwwroot\\web.config' -XdtPath $_.FullName -XdtDllPath 'C:\\tools\\bin\\Microsoft.Web.XmlTransform.dll'; };
+
+
+WORKDIR C:\inetpub\wwwroot
