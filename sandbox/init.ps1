@@ -90,6 +90,11 @@ Set-DockerComposeEnvFileVariable "SITECORE_ID_CERTIFICATE_PASSWORD" -Value $idCe
 # HOST_LICENSE_FOLDER
 Set-DockerComposeEnvFileVariable "HOST_LICENSE_FOLDER" -Value $LicenseXmlPath
 
+# Domains
+Set-DockerComposeEnvFileVariable "CM_HOST" -Value $cmDomain
+Set-DockerComposeEnvFileVariable "ID_HOST" -Value $idDomain
+Set-DockerComposeEnvFileVariable "TRAINER_HOST" -Value $siteDomain
+
 ##################################
 # Configure TLS/HTTPS certificates
 ##################################
