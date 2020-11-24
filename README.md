@@ -3,23 +3,7 @@
 You will need the following:
 - A valid Sitecore 10 license
 - Installed node, powershell, docker, and JSS
-- Sitecore Docker Images (see below)
 
-## Create Sitecore Docker Dependencies
-```
-# Clone official repo
-
-Open a powershell command prompt and run the following commands (in a separate directory):
-
-git clone https://github.com/Sitecore/docker-images
-
-# Build Images 
-.\Build.ps1 -IncludeJss -IncludeSxa -IncludeSpe -Topology xp0
-
-# Veryfy you got all the images that you need
-docker image ls | Select-String "jss"
-
-```
 # Setting up the training website
 
 ## Setting up docker

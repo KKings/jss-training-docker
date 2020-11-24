@@ -1,6 +1,7 @@
 version: "2.4"
 services:
   tooling:
+    image: ${COMPOSE_PROJECT_NAME}/tooling
     build:
       context: ./docker/build/jss-tools
     scale: 0
@@ -10,23 +11,38 @@ services:
     volumes:
       - ${HOST_LICENSE_FOLDER}:C:\license
   mssql:
-    image: community/sitecore-xp0-custom-sxa-jss-mssql:${SITECORE_VERSION}
+    image: ${COMPOSE_PROJECT_NAME}/mssql
+    build:
+      context: ./docker/build/mssql
+      args: 
+        BASE_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xp0-mssql:${SITECORE_VERSION}
+        SPE_IMAGE: ${SITECORE_MODULE_REGISTRY}spe-assets:${SPE_VERSION}
+        SXA_IMAGE: ${SITECORE_MODULE_REGISTRY}sxa-xm1-assets:${SXA_VERSION}
+        JSS_IMAGE: ${SITECORE_MODULE_REGISTRY}jss-xm1-assets:${JSS_VERSION}
     mem_limit: 2GB
     volumes:
       - ${LOCAL_DATA_PATH}\mssql:c:\data
   solr:
-    image: community/sitecore-xp0-custom-sxa-solr:${SITECORE_VERSION}
+    image: ${COMPOSE_PROJECT_NAME}/solr
+    build:
+      context: ./docker/build/solr
+      args:
+        BASE_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xp0-solr:${SITECORE_VERSION}
+        SXA_IMAGE: ${SITECORE_MODULE_REGISTRY}sxa-xm1-assets:${SXA_VERSION}
     mem_limit: 1GB
     volumes:
       - ${LOCAL_DATA_PATH}\solr:c:\data
   cm:
-    image: community/sitecore-xp0-custom-sxa-jss-cm:${SITECORE_VERSION}
+    image: ${COMPOSE_PROJECT_NAME}/cm
     build:
       context: ./docker/build/cm
       args:
-        BASE_IMAGE: community/sitecore-xp0-custom-sxa-jss-cm:${SITECORE_VERSION}
+        BASE_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xp0-cm:${SITECORE_VERSION}
+        SPE_IMAGE: ${SITECORE_MODULE_REGISTRY}spe-assets:${SPE_VERSION}
+        SXA_IMAGE: ${SITECORE_MODULE_REGISTRY}sxa-xm1-assets:${SXA_VERSION}
+        JSS_IMAGE: ${SITECORE_MODULE_REGISTRY}jss-xm1-assets:${JSS_VERSION}
         TOOLING_IMAGE: ${SITECORE_TOOLS_REGISTRY}sitecore-docker-tools-assets:${TOOLS_VERSION}
-        JSS_TOOLING_IMAGE: sc10-jss_tooling
+        JSS_TOOLING_IMAGE: ${COMPOSE_PROJECT_NAME}/tooling
     environment:
         SITECORE_LICENSE_LOCATION: C:\license\license.xml
     volumes:
@@ -35,6 +51,8 @@ services:
       - ${LOCAL_DATA_PATH}\cm:C:\inetpub\wwwroot\App_Data\logs
     entrypoint: powershell -Command "& C:\tools\entrypoints\iis\Development.ps1"
     mem_limit: 4GB
+    depends_on:
+      - tooling
   xconnect: 
     volumes:
       - ${HOST_LICENSE_FOLDER}:C:\license

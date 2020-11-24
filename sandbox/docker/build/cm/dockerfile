@@ -1,9 +1,15 @@
 # escape=`
 
 ARG BASE_IMAGE
+ARG SPE_IMAGE
+ARG SXA_IMAGE
+ARG JSS_IMAGE
 ARG TOOLING_IMAGE
 ARG JSS_TOOLING_IMAGE
 
+FROM ${SPE_IMAGE} as spe
+FROM ${SXA_IMAGE} as sxa
+FROM ${JSS_IMAGE} as jss
 FROM ${TOOLING_IMAGE} as tooling
 FROM ${JSS_TOOLING_IMAGE} as node
 FROM ${BASE_IMAGE}
@@ -18,8 +24,26 @@ RUN $env:PATH = 'C:\nodejs;{0}' -f $env:PATH ; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine)
 RUN npm config set registry https://registry.npmjs.org/
 
-# find transform files and do transformation
-RUN (Get-ChildItem -Path 'C:\\inetpub\\wwwroot\\app_data\jssxdt\\*.xdt' -Recurse ) | ForEach-Object { & 'C:\\tools\\scripts\\Invoke-XdtTransform.ps1' -Path 'C:\\inetpub\\wwwroot\\web.config' -XdtPath $_.FullName -XdtDllPath 'C:\\tools\\bin\\Microsoft.Web.XmlTransform.dll'; };
+# Setup JSS
+COPY --from=jss C:\module\cm\content C:\inetpub\wwwroot
+COPY --from=jss C:\module\tools C:\module\tools
+RUN C:\module\tools\Initialize-Content.ps1 -TargetPath C:\inetpub\wwwroot; `
+    Remove-Item -Path C:\module -Recurse -Force;
 
+# Transform JSS files against the webroot
+RUN (Get-ChildItem -Path 'C:\\inetpub\\wwwroot\\app_data\jssxdt\\*.xdt' -Recurse ) | `
+    ForEach-Object { & 'C:\\tools\\scripts\\Invoke-XdtTransform.ps1' `
+        -Path 'C:\\inetpub\\wwwroot\\web.config' `
+        -XdtPath $_.FullName `
+        -XdtDllPath 'C:\\tools\\bin\\Microsoft.Web.XmlTransform.dll'; };
+ 
+# Setup SXA
+COPY --from=sxa C:\module\cm\content C:\inetpub\wwwroot
+COPY --from=sxa C:\module\tools C:\module\tools
+RUN C:\module\tools\Initialize-Content.ps1 -TargetPath C:\inetpub\wwwroot; `
+    Remove-Item -Path C:\module -Recurse -Force;
+    
+# Setup SPE
+COPY --from=spe C:\module\cm\content C:\inetpub\wwwroot
 
 WORKDIR C:\inetpub\wwwroot
